@@ -29,18 +29,26 @@
     <properties>
         <java.version>17</java.version>
         <jacoco.version>0.8.12</jacoco.version>
+        <sonar.version>4.0.0.4121</sonar.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+
+        <!-- SonarQube/SonarCloud - Minimal config when using sonar-project.properties -->
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.token>${env.SONAR_TOKEN}</sonar.token>
+
+        <!-- Coverage Reports -->
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.coverage.exclusions>
-            **/dto/**,
-            **/exception/**,
-            **/config/**,
-            **/enums/**,
-            **/domain/**,
-            **/*Application.class
-        </sonar.coverage.exclusions>
+        <sonar.junit.reportPaths>${project.basedir}/target/surefire-reports</sonar.junit.reportPaths>
+
+        <!-- Maven specific paths (override if needed) -->
+        <sonar.java.binaries>target/classes</sonar.java.binaries>
+        <sonar.java.test.binaries>target/test-classes</sonar.java.test.binaries>
+
+        <!-- Quality Gate -->
+        <sonar.qualitygate.wait>false</sonar.qualitygate.wait>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -106,6 +114,7 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -142,6 +151,7 @@
                         <exclude>**/jdk/**</exclude>
                         <exclude>**/oracle/**</exclude>
 
+                        <!-- Exclude problematic Java 21 classes -->
                         <exclude>java/net/http/**</exclude>
                         <exclude>**/HttpClient.class</exclude>
                     </excludes>
@@ -177,12 +187,12 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.00</minimum>
+                                            <minimum>0.70</minimum>
                                         </limit>
                                         <limit>
                                             <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.00</minimum>
+                                            <minimum>0.60</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
@@ -192,7 +202,14 @@
                 </executions>
             </plugin>
 
-            <!-- Maven Surefire Plugin - QUAN TRỌNG cho JaCoCo -->
+            <!-- SonarQube Plugin -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar.version}</version>
+            </plugin>
+
+            <!-- Maven Surefire Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -209,12 +226,32 @@
                 </configuration>
             </plugin>
 
+            <!-- Maven Failsafe Plugin for Integration Tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <argLine>${jacocoArgLine}</argLine>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Maven Site Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
                 <version>3.12.1</version>
             </plugin>
 
+            <!-- Maven Project Info Reports Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
@@ -239,4 +276,60 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <profiles>
+        <!-- Profile for SonarCloud -->
+        <profile>
+            <id>sonarcloud</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+                <sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
+                <sonar.projectKey>${env.SONAR_PROJECT_KEY}</sonar.projectKey>
+            </properties>
+        </profile>
+
+        <!-- Profile for local SonarQube -->
+        <profile>
+            <id>sonar-local</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <sonar.host.url>http://localhost:9000</sonar.host.url>
+                <sonar.projectKey>storeapplication</sonar.projectKey>
+            </properties>
+        </profile>
+
+        <!-- Profile for CI/CD -->
+        <profile>
+            <id>ci</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+                <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+            </properties>
+        </profile>
+
+        <!-- GitHub Actions Profile -->
+        <profile>
+            <id>github-actions</id>
+            <activation>
+                <property>
+                    <name>env.GITHUB_ACTIONS</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+                <sonar.token>${env.SONAR_TOKEN}</sonar.token>
+                <sonar.organization>${env.SONAR_ORGANIZATION}</sonar.organization>
+                <sonar.projectKey>${env.SONAR_PROJECT_KEY}</sonar.projectKey>
+            </properties>
+        </profile>
+    </profiles>
 </project>
