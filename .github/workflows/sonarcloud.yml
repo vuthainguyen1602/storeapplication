@@ -2,7 +2,7 @@ name: SonarCloud Analysis
 env:
     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-    SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+    SONAR_PROJECT_KEY: vuthainguyen1602_storeapplication
     run: mvn clean verify sonar:sonar -P github-actions
 on:
   push:
