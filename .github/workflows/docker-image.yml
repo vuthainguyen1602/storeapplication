@@ -54,13 +54,15 @@ jobs:
     # SonarCloud Analysis
     # ---------------------------
     - name: SonarCloud Analysis
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
       run: mvn -B verify sonar:sonar -Psonarcloud,ci \
         -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
         -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
     # ---------------------------
     # Build Docker image
     # ---------------------------
