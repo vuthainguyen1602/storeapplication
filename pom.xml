@@ -264,6 +264,7 @@
                 <version>3.2.2</version>
                 <configuration>
                     <configLocation>config/checkstyle/custom_checks.xml</configLocation>
+                    <suppressionsLocation>config/checkstyle/suppressions.xml</suppressionsLocation>
                     <failOnViolation>false</failOnViolation>
                     <encoding>UTF-8</encoding>
                 </configuration>
