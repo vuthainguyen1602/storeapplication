@@ -1,5 +1,4 @@
 name: CI/CD with SonarCloud & Deploy
-
 on:
   push:
     branches: [ main, develop ]
@@ -59,11 +58,12 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
         SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-      run: mvn -B verify sonar:sonar -Psonarcloud,ci \
-        -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
-        -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-    # ---------------------------
+      run: |
+        mvn -B verify sonar:sonar -Psonarcloud,ci \
+          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+          -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      # ---------------------------
     # Build Docker image
     # ---------------------------
     - name: Log in to Docker Hub
